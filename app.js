@@ -183,6 +183,8 @@ ws.onMessage = (socket, id, msg) => {
       case "cellOver":
         // Si revem la posició del mouse de qui està jugant, l'enviem al rival
         playerTurn = matches[idMatch].nextTurn
+        //para comprobar el estado del match
+        //console.log(matches[idMatch])
         idSend = matches[idMatch].playerX
         if (playerTurn == "X") idSend = matches[idMatch].playerO
 
