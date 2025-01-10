@@ -46,7 +46,7 @@ app.use(express.static('public'))
 
 // Activate HTTP server
 const httpServer = app.listen(port, appListen)
-async function appListen () {
+async function appListen() {
   await shadows.init('./public/index.html', './public/shadows')
   console.log(`Listening for HTTP queries on: http://localhost:${port}`)
   console.log(`Development queries on: http://localhost:${port}/index-dev.html`)
@@ -70,13 +70,15 @@ ws.onConnection = (socket, id) => {
   console.log("WebSocket client connected: " + id)
   idMatch = -1
   playersReady = false
-  
+
   if (matches.length == 0) {
     // Si no hi ha partides, en creem una de nova
     idMatch = 0
     matches.push({
-      playerX: id, 
-      playerO: "", 
+      playerX: id,
+      playerXName: "Ivan",
+      playerO: "",
+      playerOName: "Javier",
       board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
       nextTurn: "X"
     })
@@ -98,10 +100,12 @@ ws.onConnection = (socket, id) => {
     // Si hi ha partides, però totes ocupades creem una de nova
     if (idMatch == -1) {
       idMatch = matches.length
-      matches.push({ 
-        playerX: id, 
-        playerO: "", 
-            board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+      matches.push({
+        playerX: id,
+        playerXName: "Ivan",
+        playerO: "",
+        playerOName: "Javier",
+        board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
         nextTurn: "X"
       })
     }
@@ -169,83 +173,90 @@ ws.onMessage = (socket, id, msg) => {
   // Processar el missatge rebut
   if (idMatch != -1) {
     switch (obj.type) {
-    case "cellOver":
-      // Si revem la posició del mouse de qui està jugant, l'enviem al rival
-      playerTurn = matches[idMatch].nextTurn
-      idSend = matches[idMatch].playerX
-      if (playerTurn == "X") idSend = matches[idMatch].playerO
-
-      wsSend = ws.getClientById(idSend)
-      if (wsSend != null) {
-        wsSend.send(JSON.stringify({
-          type: "opponentOver",
-          value: obj.value
-        }))
-      }
-      break
-    case "cellChoice":
-      // Si rebem la posició de la cel·la triada, actualitzem la partida
-      playerTurn = matches[idMatch].nextTurn
-      matches[idMatch].board[obj.value] = playerTurn
-
-      // Comprovem si hi ha guanyador
-      let winner = ""
-      let board = matches[idMatch].board
-
-      // Verificar files
-      if (board[0] == board[1] && board[0] == board[2]) winner = board[0]
-      else if (board[3] == board[4] && board[3] == board[5]) winner = board[3]
-      else if (board[6] == board[7] && board[6] == board[8]) winner = board[6]
-
-      // Verificar columnes
-      else if (board[0] == board[3] && board[0] == board[6]) winner = board[0]
-      else if (board[1] == board[4] && board[1] == board[7]) winner = board[1]
-      else if (board[2] == board[5] && board[2] == board[8]) winner = board[2]
-
-      // Verificar diagonals
-      else if (board[0] == board[4] && board[0] == board[8]) winner = board[0]
-      else if (board[2] == board[4] && board[2] == board[6]) winner = board[2]
-
-      // Comprovem si hi ha empat (ja no hi ha cap espai buit)
-      let tie = true
-      for (let i = 0; i < board.length; i++) {
-        if (board[i] == "") {
-          tie = false
-          break
-        }
-      }
-
-      if (winner == "" && !tie) {
-        // Si no hi ha guanyador ni empat, canviem el torn
-        if (matches[idMatch].nextTurn == "X") {
-          matches[idMatch].nextTurn = "O"
-        } else {
-          matches[idMatch].nextTurn = "X"
-        }
-
-        // Informem al jugador de la partida
-        socket.send(JSON.stringify({
-          type: "gameRound",
-          value: matches[idMatch]
-        }))
-
-        // Informem al rival de la partida
-        let idOpponent = ""
+      case "setPlayerName":
         if (matches[idMatch].playerX == id) {
-          idOpponent = matches[idMatch].playerO
+          matches[idMatch].playerXName = obj.value
         } else {
-          idOpponent = matches[idMatch].playerX
+          matches[idMatch].playerOName = obj.value
         }
-        let wsOpponent = ws.getClientById(idOpponent)
-        if (wsOpponent != null) {
-          wsOpponent.send(JSON.stringify({
+        break;
+      case "cellOver":
+        // Si revem la posició del mouse de qui està jugant, l'enviem al rival
+        playerTurn = matches[idMatch].nextTurn
+        idSend = matches[idMatch].playerX
+        if (playerTurn == "X") idSend = matches[idMatch].playerO
+
+        wsSend = ws.getClientById(idSend)
+        if (wsSend != null) {
+          wsSend.send(JSON.stringify({
+            type: "opponentOver",
+            value: obj.value
+          }))
+        }
+        break
+      case "cellChoice":
+        // Si rebem la posició de la cel·la triada, actualitzem la partida
+        playerTurn = matches[idMatch].nextTurn
+        matches[idMatch].board[obj.value] = playerTurn
+
+        // Comprovem si hi ha guanyador
+        let winner = ""
+        let board = matches[idMatch].board
+
+        // Verificar files
+        if (board[0] == board[1] && board[0] == board[2]) winner = board[0]
+        else if (board[3] == board[4] && board[3] == board[5]) winner = board[3]
+        else if (board[6] == board[7] && board[6] == board[8]) winner = board[6]
+
+        // Verificar columnes
+        else if (board[0] == board[3] && board[0] == board[6]) winner = board[0]
+        else if (board[1] == board[4] && board[1] == board[7]) winner = board[1]
+        else if (board[2] == board[5] && board[2] == board[8]) winner = board[2]
+
+        // Verificar diagonals
+        else if (board[0] == board[4] && board[0] == board[8]) winner = board[0]
+        else if (board[2] == board[4] && board[2] == board[6]) winner = board[2]
+
+        // Comprovem si hi ha empat (ja no hi ha cap espai buit)
+        let tie = true
+        for (let i = 0; i < board.length; i++) {
+          if (board[i] == "") {
+            tie = false
+            break
+          }
+        }
+
+        if (winner == "" && !tie) {
+          // Si no hi ha guanyador ni empat, canviem el torn
+          if (matches[idMatch].nextTurn == "X") {
+            matches[idMatch].nextTurn = "O"
+          } else {
+            matches[idMatch].nextTurn = "X"
+          }
+
+          // Informem al jugador de la partida
+          socket.send(JSON.stringify({
             type: "gameRound",
             value: matches[idMatch]
           }))
-        }
 
-      } else {
-        // Si hi ha guanyador o empat, acabem la partida
+          // Informem al rival de la partida
+          let idOpponent = ""
+          if (matches[idMatch].playerX == id) {
+            idOpponent = matches[idMatch].playerO
+          } else {
+            idOpponent = matches[idMatch].playerX
+          }
+          let wsOpponent = ws.getClientById(idOpponent)
+          if (wsOpponent != null) {
+            wsOpponent.send(JSON.stringify({
+              type: "gameRound",
+              value: matches[idMatch]
+            }))
+          }
+
+        } else {
+          // Si hi ha guanyador o empat, acabem la partida
 
           // Informem al jugador de la partida
           socket.send(JSON.stringify({
@@ -269,9 +280,9 @@ ws.onMessage = (socket, id, msg) => {
               winner: winner
             }))
           }
-      }
+        }
 
-      break
+        break
     }
   }
 }
@@ -294,10 +305,10 @@ ws.onClose = (socket, id) => {
       // Esborrar la partida per falta de jugadors
       matches.splice(idMatch, 1)
     } else {
-      
+
       // Reiniciem el taulell
       matches[idMatch].board = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-      
+
       // Esborrar el jugador de la partida
       let rival = ""
       if (matches[idMatch].playerX == id) {
@@ -322,7 +333,7 @@ ws.onClose = (socket, id) => {
 // Configurar la direcció '/index-dev.html' per retornar
 // la pàgina que descarrega tots els shadows (desenvolupament)
 app.get('/index-dev.html', getIndexDev)
-async function getIndexDev (req, res) {
+async function getIndexDev(req, res) {
   res.setHeader('Content-Type', 'text/html');
   res.send(shadows.getIndexDev())
 }
@@ -330,7 +341,7 @@ async function getIndexDev (req, res) {
 // Configurar la direcció '/shadows.js' per retornar
 // tot el codi de les shadows en un sol arxiu
 app.get('/shadows.js', getShadows)
-async function getShadows (req, res) {
+async function getShadows(req, res) {
   res.setHeader('Content-Type', 'application/javascript');
   res.send(shadows.getShadows())
 }

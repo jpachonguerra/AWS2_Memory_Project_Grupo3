@@ -1,25 +1,29 @@
 let socket;
 let socketConnected = false;
 
-function connect(protocol, ip, port) {
+function connect(protocol, ip, port, playerName) {
 
     socket = new WebSocket(`${protocol}://${ip}:${port}`)
 
-    socket.onopen = function(e) {
+    socket.onopen = function (e) {
         console.log("Socket connected")
         socketConnected = true
+        sendServer({
+            type: "setPlayerName",
+            value: playerName
+        })
     }
-    
-    socket.onmessage = function(event) {
+
+    socket.onmessage = function (event) {
         let obj = JSON.parse(event.data)
         document.querySelector('game-ws').getViewShadow('game-view-playing').onServerMessage(obj)
     }
 
-    socket.onerror = function(error) {
+    socket.onerror = function (error) {
         console.log(`WebSocket error: ${error}`)
     }
 
-    socket.onclose = async function(event) {
+    socket.onclose = async function (event) {
 
         if (event.wasClean) {
             console.log(`[close] Connection closed cleanly`)
@@ -27,7 +31,7 @@ function connect(protocol, ip, port) {
             console.log('[close] Connection died')
         }
 
-        socketConnected = false 
+        socketConnected = false
         await document.querySelector('game-ws').getViewShadow('game-view-playing').showDisconnecting()
     }
 }
@@ -40,5 +44,5 @@ function disconnect() {
 function sendServer(obj) {
     let msg = JSON.stringify(obj)
     if (msg == null || msg === "{}") return
-    socket.send(msg) 
+    socket.send(msg)
 }
