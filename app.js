@@ -80,6 +80,10 @@ ws.onConnection = (socket, id) => {
       playerO: "",
       playerOName: "Javier",
       board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+      randomBoard: shuffleArray(["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"]),
+      cellsFlipped: 0, //con esta variable controlamos los turnos: cada jugador debe hacer dos flips por turno
+      playerXScore: 0,
+      playerOScore: 0,
       nextTurn: "X"
     })
   } else {
@@ -106,6 +110,10 @@ ws.onConnection = (socket, id) => {
         playerO: "",
         playerOName: "Javier",
         board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        randomBoard: shuffleArray(["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"]),
+        cellsFlipped: 0, //con esta variable controlamos los turnos: cada jugador debe hacer dos flips por turno
+        playerXScore: 0,
+        playerOScore: 0,
         nextTurn: "X"
       })
     }
@@ -206,27 +214,40 @@ ws.onMessage = (socket, id, msg) => {
         let board = matches[idMatch].board
 
         // Verificar files
-        if (board[0] == board[1] && board[0] == board[2]) winner = board[0]
-        else if (board[3] == board[4] && board[3] == board[5]) winner = board[3]
-        else if (board[6] == board[7] && board[6] == board[8]) winner = board[6]
+        // if (board[0] == board[1] && board[0] == board[2]) winner = board[0]
+        // else if (board[3] == board[4] && board[3] == board[5]) winner = board[3]
+        // else if (board[6] == board[7] && board[6] == board[8]) winner = board[6]
 
-        // Verificar columnes
-        else if (board[0] == board[3] && board[0] == board[6]) winner = board[0]
-        else if (board[1] == board[4] && board[1] == board[7]) winner = board[1]
-        else if (board[2] == board[5] && board[2] == board[8]) winner = board[2]
+        // // Verificar columnes
+        // else if (board[0] == board[3] && board[0] == board[6]) winner = board[0]
+        // else if (board[1] == board[4] && board[1] == board[7]) winner = board[1]
+        // else if (board[2] == board[5] && board[2] == board[8]) winner = board[2]
 
-        // Verificar diagonals
-        else if (board[0] == board[4] && board[0] == board[8]) winner = board[0]
-        else if (board[2] == board[4] && board[2] == board[6]) winner = board[2]
+        // // Verificar diagonals
+        // else if (board[0] == board[4] && board[0] == board[8]) winner = board[0]
+        // else if (board[2] == board[4] && board[2] == board[6]) winner = board[2]
 
-        // Comprovem si hi ha empat (ja no hi ha cap espai buit)
-        let tie = true
-        for (let i = 0; i < board.length; i++) {
-          if (board[i] == "") {
-            tie = false
-            break
+        // Verificar si hi ha guanyador
+        // Si los contenidos de la array board es igual a los de la array randomBoard significa que la partida acaba y el ganador es el que tenga más score
+        if (board == randomBoard) {
+          if (playerXScore > playerOScore) {
+            winner = "X"
+          } else if (playerXScore < playerOScore) {
+            winner = "O"
+          } else {
+            winner = ""
+            tie = true
           }
         }
+        
+        // Comprovem si hi ha empat (ja no hi ha cap espai buit)
+        // let tie = true
+        // for (let i = 0; i < board.length; i++) {
+        //   if (board[i] == "") {
+        //     tie = false
+        //     break
+        //   }
+        // }
 
         if (winner == "" && !tie) {
           // Si no hi ha guanyador ni empat, canviem el torn
@@ -309,7 +330,7 @@ ws.onClose = (socket, id) => {
     } else {
 
       // Reiniciem el taulell
-      matches[idMatch].board = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+      matches[idMatch].board = shuffleArray(["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"]);
 
       // Esborrar el jugador de la partida
       let rival = ""
@@ -346,4 +367,13 @@ app.get('/shadows.js', getShadows)
 async function getShadows(req, res) {
   res.setHeader('Content-Type', 'application/javascript');
   res.send(shadows.getShadows())
+}
+
+// Función para mezclar el arreglo
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }

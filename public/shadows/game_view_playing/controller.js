@@ -41,6 +41,38 @@ class GameViewPlaying extends HTMLElement {
         // Quan es crea l'element shadow DOM (no quan es connecta el socket)
 
         // Preload images
+        this.imgA = new Image()
+        this.imgA.src = '/images/imgA.png'
+        this.imgA.onload = () => { this.imgAloaded = true }
+
+        this.imgB = new Image()
+        this.imgB.src = '/images/imgB.png'
+        this.imgB.onload = () => { this.imgBloaded = true }
+
+        this.imgC = new Image()
+        this.imgC.src = '/images/imgC.png'
+        this.imgC.onload = () => { this.imgCloaded = true }
+
+        this.imgD = new Image()
+        this.imgD.src = '/images/imgD.png'
+        this.imgD.onload = () => { this.imgDloaded = true }
+
+        this.imgE = new Image()
+        this.imgE.src = '/images/imgE.png'
+        this.imgE.onload = () => { this.imgEloaded = true }
+
+        this.imgF = new Image()
+        this.imgF.src = '/images/imgF.png'
+        this.imgF.onload = () => { this.imgFloaded = true }
+
+        this.imgG = new Image()
+        this.imgG.src = '/images/imgG.png'
+        this.imgG.onload = () => { this.imgGloaded = true }
+
+        this.imgH = new Image()
+        this.imgH.src = '/images/imgH.png'
+        this.imgH.onload = () => { this.imgHloaded = true }
+
         this.imgX = new Image()
         this.imgX.src = '/images/imgX.png'
         this.imgX.onload = () => { this.imgXloaded = true }
@@ -188,6 +220,15 @@ class GameViewPlaying extends HTMLElement {
         this.restartRun()
     }
 
+    /**
+     * Handles the mouse click event.
+     * 
+     * If the game is in progress and it's the user's turn, the function
+     * gets the coordinates of the mouse click, uses the getCell function
+     * to determine the index of the cell that was clicked, and if the
+     * cell is empty, sends a "cellChoice" message to the server with the
+     * index of the cell.
+     */
     onMouseClick(event) {
 
         if (this.isMyTurn && this.gameStatus == "gameRound") {
@@ -508,6 +549,38 @@ class GameViewPlaying extends HTMLElement {
             this.drawRect(ctx, 10, colorBoard, cellCoords.x, cellCoords.y, cellSize, cellSize)
 
             // Dibuixa el contingut de la casella
+            if (cell == "A") {
+                if (this.imgAloaded) this.drawImage(ctx, this.imgA, cellCoords, cellSize)
+                else this.drawA(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "B") {
+                if (this.imgBloaded) this.drawImage(ctx, this.imgB, cellCoords, cellSize)
+                else this.drawB(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "C") {
+                if (this.imgCloaded) this.drawImage(ctx, this.imgC, cellCoords, cellSize)
+                else this.drawC(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "D") {
+                if (this.imgDloaded) this.drawImage(ctx, this.imgD, cellCoords, cellSize)
+                else this.drawD(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "E") {
+                if (this.imgEloaded) this.drawImage(ctx, this.imgE, cellCoords, cellSize)
+                else this.drawE(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "F") {
+                if (this.imgFloaded) this.drawImage(ctx, this.imgF, cellCoords, cellSize)
+                else this.drawF(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "G") {
+                if (this.imgGloaded) this.drawImage(ctx, this.imgG, cellCoords, cellSize)
+                else this.drawG(ctx, colorX, cellCoords, cellSize)
+            }
+            if (cell == "H") {
+                if (this.imgHloaded) this.drawImage(ctx, this.imgH, cellCoords, cellSize)
+                else this.drawH(ctx, colorX, cellCoords, cellSize)
+            }
             if (cell == "X") {
                 if (this.imgXloaded) this.drawImage(ctx, this.imgX, cellCoords, cellSize)
                 else this.drawX(ctx, colorX, cellCoords, cellSize)
