@@ -12,11 +12,14 @@ class GameViewPlaying extends HTMLElement {
         this.match = {      // Conté la informació de la partida
             idMatch: -1,
             playerX: "",
+            playerXName: "",
             playerO: "",
+            playerOName: "",
             board: [],
             nextTurn: "X"
         }
-        this.opponentId = ""  // Conté l'id de l'oponent
+        this.opponentName = ""  // Conté el nom de l'oponent
+        this.name = ""  // Conté el nom del jugador
         this.gameStatus = "waitingOpponent"
         this.player = "X"
         this.isMyTurn = false
@@ -94,11 +97,12 @@ class GameViewPlaying extends HTMLElement {
     }
 
     showInfo() {
-        let txt = `Connected to <b>${socket.url}</b>, with ID <b>${this.socketId}</b>.`
-        if (this.opponentId != "") {
-            txt = txt + ` Playing against: <b>${this.opponentId}</b>`
+        let txt = `Mi nombre: <b>${this.name}</b>`
+        this.shadow.querySelector('#playerInfo').innerHTML = txt
+        if (this.opponentName != "") {
+            let opponentTxt = ` Mi contrincante: <b>${this.opponentName}</b>`
+            this.shadow.querySelector('#opponentInfo').innerHTML = opponentTxt
         }
-        this.shadow.querySelector('#connectionInfo').innerHTML = txt
     }
 
     initCanvas() {
@@ -154,7 +158,7 @@ class GameViewPlaying extends HTMLElement {
     }
 
     onMouseMove(event) {
-
+        console.log("My turn: " + this.isMyTurn + " Game status: " + this.gameStatus)
         if (this.isMyTurn && this.gameStatus == "gameRound") {
 
             // Obtenir les coordenades del ratolí respecte al canvas
@@ -219,10 +223,10 @@ class GameViewPlaying extends HTMLElement {
     onServerMessage(obj) {
 
         this.isMyTurn = false
-        this.opponentId = ""
+        this.opponentName = ""
         this.cellOpponentOver = -1
         this.winner = ""
-
+        console.log(obj.type);
         switch (obj.type) {
             case "socketId":
                 this.socketId = obj.value
@@ -250,17 +254,42 @@ class GameViewPlaying extends HTMLElement {
 
                 if (this.match.playerX == this.socketId) {
                     this.player = "X"
-                    this.opponentId = this.match.playerO
+                    this.opponentName = this.match.playerOName
                     if (this.match.nextTurn == "X") {
                         this.isMyTurn = true
                     }
                 } else {
                     this.player = "O"
-                    this.opponentId = this.match.playerX
+                    this.opponentName = this.match.playerXName
                     if (this.match.nextTurn == "O") {
                         this.isMyTurn = true
                     }
                 }
+                break
+            case "nameChanges":
+                this.gameStatus == "gameRound"
+                this.match = obj.value
+
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
+                    console.log("My name is: " + this.match.playerXName);
+                    this.name = this.match.playerXName
+                } else {
+                    this.player = "O"
+                    console.log("My name is: " + this.match.playerOName);
+                    this.name = this.match.playerOName
+                }
+
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
+                    console.log("Opponent: " + this.match.playerOName);
+                    this.opponentName = this.match.playerOName
+                } else {
+                    this.player = "O"
+                    console.log("Opponent: " + this.match.playerXName);
+                    this.opponentName = this.match.playerXName
+                }
+                this.showInfo()
                 break
         }
 

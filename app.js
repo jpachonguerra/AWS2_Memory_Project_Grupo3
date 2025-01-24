@@ -76,9 +76,9 @@ ws.onConnection = (socket, id) => {
     idMatch = 0
     matches.push({
       playerX: id,
-      playerXName: "Ivan",
+      playerXName: "",
       playerO: "",
-      playerOName: "Javier",
+      playerOName: "",
       board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
       nextTurn: "X"
     })
@@ -102,9 +102,9 @@ ws.onConnection = (socket, id) => {
       idMatch = matches.length
       matches.push({
         playerX: id,
-        playerXName: "Ivan",
+        playerXName: "",
         playerO: "",
-        playerOName: "Javier",
+        playerOName: "",
         board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
         nextTurn: "X"
       })
@@ -179,12 +179,48 @@ ws.onMessage = (socket, id, msg) => {
         } else {
           matches[idMatch].playerOName = obj.value
         }
+
+        console.log("Player name has changed");
+
+        socket.send(JSON.stringify({
+          type: "nameChanges",
+          value: matches[idMatch]
+        }))
+
+        let idOpponent = ""
+        if (matches[idMatch].playerX == id) {
+          idOpponent = matches[idMatch].playerO
+        } else {
+          idOpponent = matches[idMatch].playerX
+        }
+
+        let wsOpponent = ws.getClientById(idOpponent)
+        if (wsOpponent != null) {
+          // Informem al oponent que toca jugar
+          wsOpponent.send(JSON.stringify({
+            type: "nameChanges",
+            value: matches[idMatch]
+          }))
+
+          // Informem al oponent que toca jugar
+          wsOpponent.send(JSON.stringify({
+            type: "gameRound",
+            value: matches[idMatch]
+          }))
+
+          // Informem al player que toca jugar
+          socket.send(JSON.stringify({
+            type: "gameRound",
+            value: matches[idMatch]
+          }))
+        }
+        console.log("Names have been changed");
         break;
       case "cellOver":
         // Si revem la posició del mouse de qui està jugant, l'enviem al rival
         playerTurn = matches[idMatch].nextTurn
         //para comprobar el estado del match
-        //console.log(matches[idMatch])
+        console.log(matches[idMatch])
         idSend = matches[idMatch].playerX
         if (playerTurn == "X") idSend = matches[idMatch].playerO
 

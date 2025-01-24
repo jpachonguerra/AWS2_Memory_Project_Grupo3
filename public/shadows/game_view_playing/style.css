@@ -1,5 +1,8 @@
 @import url("/shadows/common.css");
 
+.header {
+    justify-content: space-between;
+}
 .root {
     background-color: white;
     display: flex;
@@ -18,8 +21,12 @@
     padding: 8px;
 }
 
-#connectionInfo {
-    flex-grow: 2;
+#playerInfo, #opponentInfo {
+    flex-grow: 1;
+}
+
+#opponentInfo {
+    text-align: right;
 }
 
 #gameArea {
