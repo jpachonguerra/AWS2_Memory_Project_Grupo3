@@ -263,7 +263,7 @@ class GameViewPlaying extends HTMLElement {
         this.opponentId = ""
         this.cellOpponentOver = -1
         this.winner = ""
-
+        
         switch (obj.type) {
             case "socketId":
                 this.socketId = obj.value
@@ -284,6 +284,10 @@ class GameViewPlaying extends HTMLElement {
                 this.gameStatus = "gameOver"
                 this.match = obj.value
                 this.winner = obj.winner
+                break
+            case "gamePause":
+                this.gameStatus = "gamePause"
+                this.match = obj.value
                 break
             case "gameRound":
                 this.gameStatus = "gameRound"
@@ -378,6 +382,9 @@ class GameViewPlaying extends HTMLElement {
                 this.drawWaitingOpponent(this.ctx)
                 break
             case "gameRound":
+                this.drawBoard(this.ctx)
+                break
+            case "gamePause":
                 this.drawBoard(this.ctx)
                 break
             case "gameOver":

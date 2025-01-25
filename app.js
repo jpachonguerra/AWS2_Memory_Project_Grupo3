@@ -236,20 +236,19 @@ ws.onMessage = (socket, id, msg) => {
             }
           } else {
             // Si no son iguales vaciamos las casillas
-
-            matches[idMatch].board[matches[idMatch].coordinatesClicked[0]] = "";
-            matches[idMatch].board[matches[idMatch].coordinatesClicked[1]] = "";
-            matches[idMatch].coordinatesClicked = [];
-            matches[idMatch].isProcessing = false;
+            matches[idMatch].isProcessing = true;
+            // matches[idMatch].board[matches[idMatch].coordinatesClicked[0]] = "";
+            // matches[idMatch].board[matches[idMatch].coordinatesClicked[1]] = "";
+            // matches[idMatch].coordinatesClicked = [];
+            // matches[idMatch].isProcessing = false;
 
           }
         }
 
         matches[idMatch].cellsFlipped++; // Aumentamos el contador de cartas descubiertas
-        
+
         // Comprovem si hi ha guanyador
         let winner = ""
-        let board = matches[idMatch].board
 
         // Verificar si hi ha guanyador
         // Si los contenidos de la array board es igual a los de la array randomBoard significa que la partida acaba y el ganador es el que tenga más score
@@ -283,6 +282,81 @@ ws.onMessage = (socket, id, msg) => {
             }
             matches[idMatch].cellsFlipped = 0;
           }
+
+          if (matches[idMatch].isProcessing) {
+            
+             // Informem al jugador de la partida
+             socket.send(JSON.stringify({
+              type: "gameRound",
+              value: matches[idMatch]
+            }))
+
+            // Informem al rival de la partida
+            let idOpponent = ""
+            if (matches[idMatch].playerX == id) {
+              idOpponent = matches[idMatch].playerO
+            } else {
+              idOpponent = matches[idMatch].playerX
+            }
+            let wsOpponent = ws.getClientById(idOpponent)
+            if (wsOpponent != null) {
+              wsOpponent.send(JSON.stringify({
+                type: "gameRound",
+                value: matches[idMatch]
+              }))
+            }
+            setTimeout(() => {
+              matches[idMatch].isProcessing = false;
+              matches[idMatch].board[matches[idMatch].coordinatesClicked[0]] = "";
+              matches[idMatch].board[matches[idMatch].coordinatesClicked[1]] = "";
+              matches[idMatch].coordinatesClicked = [];
+             
+            }, 100);
+
+             // Informem al jugador de la partida
+             socket.send(JSON.stringify({
+              type: "gamePause",
+              value: matches[idMatch]
+            }))
+
+            // Informem al rival de la partida
+            if (matches[idMatch].playerX == id) {
+              idOpponent = matches[idMatch].playerO
+            } else {
+              idOpponent = matches[idMatch].playerX
+            }
+            if (wsOpponent != null) {
+              wsOpponent.send(JSON.stringify({
+                type: "gamePause",
+                value: matches[idMatch]
+              }))
+            }
+
+            setTimeout(() => {
+            // Informem al jugador de la partida
+             socket.send(JSON.stringify({
+              type: "gameRound",
+              value: matches[idMatch]
+            }))
+
+            // Informem al rival de la partida
+            let idOpponent = ""
+            if (matches[idMatch].playerX == id) {
+              idOpponent = matches[idMatch].playerO
+            } else {
+              idOpponent = matches[idMatch].playerX
+            }
+            let wsOpponent = ws.getClientById(idOpponent)
+            if (wsOpponent != null) {
+              wsOpponent.send(JSON.stringify({
+                type: "gameRound",
+                value: matches[idMatch]
+              }))
+            }
+            }, 2000);
+          
+          }
+          else {
           // Informem al jugador de la partida
           socket.send(JSON.stringify({
             type: "gameRound",
@@ -303,9 +377,7 @@ ws.onMessage = (socket, id, msg) => {
               value: matches[idMatch]
             }))
           }
-
-
-
+        }
         } else {
           // Si hi ha guanyador o empat, acabem la partida
 
@@ -332,7 +404,6 @@ ws.onMessage = (socket, id, msg) => {
             }))
           }
         }
-
         break
     }
   }
