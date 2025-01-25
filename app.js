@@ -81,10 +81,12 @@ ws.onConnection = (socket, id) => {
       playerOName: "Javier",
       board: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
       randomBoard: shuffleArray(["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"]),
+      coordinatesClicked: [],
       cellsFlipped: 0, //con esta variable controlamos los turnos: cada jugador debe hacer dos flips por turno
       playerXScore: 0,
       playerOScore: 0,
-      nextTurn: "X"
+      nextTurn: "X",
+      isProcessing: false
     })
   } else {
     // Si hi ha partides, mirem si n'hi ha alguna en espera de jugador
@@ -114,7 +116,8 @@ ws.onConnection = (socket, id) => {
         cellsFlipped: 0, //con esta variable controlamos los turnos: cada jugador debe hacer dos flips por turno
         playerXScore: 0,
         playerOScore: 0,
-        nextTurn: "X"
+        nextTurn: "X",
+        isProcessing: false
       })
     }
   }
@@ -206,57 +209,80 @@ ws.onMessage = (socket, id, msg) => {
         break
       case "cellChoice":
         // Si rebem la posició de la cel·la triada, actualitzem la partida
+        // obj.value is the index of the cell chosen by the player
+        // for example, if the player clicked on the first cell, obj.value would be 0
+        // We use this index to set the value of the corresponding cell in the board array
+        // For example, if the player clicked on the first cell, we would do board[0] = playerTurn
         playerTurn = matches[idMatch].nextTurn
-        matches[idMatch].board[obj.value] = playerTurn
+        // matches[idMatch].board[obj.value] = playerTurn
 
+        // Descubrimos la casilla que clica el jugador
+        matches[idMatch].board[obj.value] = matches[idMatch].randomBoard[obj.value];
+        if (matches[idMatch].cellsFlipped == 0) { // Si es la primera carta
+          matches[idMatch].coordinatesClicked[0] = obj.value;
+        }
+        if (matches[idMatch].cellsFlipped == 1) { // Si es la segunda carta
+          matches[idMatch].coordinatesClicked[1] = obj.value;
+
+          // Comparar si la primera carta es igual a la segunda
+          if (matches[idMatch].board[matches[idMatch].coordinatesClicked[0]] == matches[idMatch].board[matches[idMatch].coordinatesClicked[1]]) {
+            // Si son iguales, aumentamos el contador de puntos del jugador
+            if (playerTurn == "X") {
+              matches[idMatch].playerXScore++;
+              matches[idMatch].nextTurn = "O";
+            } else {
+              matches[idMatch].playerOScore++;
+              matches[idMatch].nextTurn = "X";
+            }
+          } else {
+            // Si no son iguales vaciamos las casillas
+
+            matches[idMatch].board[matches[idMatch].coordinatesClicked[0]] = "";
+            matches[idMatch].board[matches[idMatch].coordinatesClicked[1]] = "";
+            matches[idMatch].coordinatesClicked = [];
+            matches[idMatch].isProcessing = false;
+
+          }
+        }
+
+        matches[idMatch].cellsFlipped++; // Aumentamos el contador de cartas descubiertas
+        
         // Comprovem si hi ha guanyador
         let winner = ""
         let board = matches[idMatch].board
 
-        // Verificar files
-        // if (board[0] == board[1] && board[0] == board[2]) winner = board[0]
-        // else if (board[3] == board[4] && board[3] == board[5]) winner = board[3]
-        // else if (board[6] == board[7] && board[6] == board[8]) winner = board[6]
-
-        // // Verificar columnes
-        // else if (board[0] == board[3] && board[0] == board[6]) winner = board[0]
-        // else if (board[1] == board[4] && board[1] == board[7]) winner = board[1]
-        // else if (board[2] == board[5] && board[2] == board[8]) winner = board[2]
-
-        // // Verificar diagonals
-        // else if (board[0] == board[4] && board[0] == board[8]) winner = board[0]
-        // else if (board[2] == board[4] && board[2] == board[6]) winner = board[2]
-
         // Verificar si hi ha guanyador
         // Si los contenidos de la array board es igual a los de la array randomBoard significa que la partida acaba y el ganador es el que tenga más score
-        if (board == randomBoard) {
-          if (playerXScore > playerOScore) {
+        let tie = false;
+        if (JSON.stringify(matches[idMatch].board) === JSON.stringify(matches[idMatch].randomBoard)) {
+          console.log("Partida acabada")
+          if (matches[idMatch].playerXScore > matches[idMatch].playerOScore) {
             winner = "X"
-          } else if (playerXScore < playerOScore) {
+          } else if (matches[idMatch].playerXScore < matches[idMatch].playerOScore) {
             winner = "O"
           } else {
             winner = ""
             tie = true
           }
         }
-        
-        // Comprovem si hi ha empat (ja no hi ha cap espai buit)
-        // let tie = true
-        // for (let i = 0; i < board.length; i++) {
-        //   if (board[i] == "") {
-        //     tie = false
-        //     break
-        //   }
-        // }
 
+        console.log(matches[idMatch].cellsFlipped)
+        console.log(matches[idMatch].board)
+        console.log(matches[idMatch].randomBoard)
+        console.log("playerXScore: " + matches[idMatch].playerXScore)
+        console.log("playerOScore: " + matches[idMatch].playerOScore)
+        // console.log(matches[idMatch].playerXScore)
+        // console.log(matches[idMatch].playerOScore)
         if (winner == "" && !tie) {
-          // Si no hi ha guanyador ni empat, canviem el torn
-          if (matches[idMatch].nextTurn == "X") {
-            matches[idMatch].nextTurn = "O"
-          } else {
-            matches[idMatch].nextTurn = "X"
+          // Si no hi ha guanyador ni empat, canviem el torn despres de dos volteigs
+          if (matches[idMatch].cellsFlipped == 2) {
+            if (matches[idMatch].nextTurn == "X") {
+              matches[idMatch].nextTurn = "O"
+            } else {
+              matches[idMatch].nextTurn = "X"
+            }
+            matches[idMatch].cellsFlipped = 0;
           }
-
           // Informem al jugador de la partida
           socket.send(JSON.stringify({
             type: "gameRound",
@@ -277,6 +303,8 @@ ws.onMessage = (socket, id, msg) => {
               value: matches[idMatch]
             }))
           }
+
+
 
         } else {
           // Si hi ha guanyador o empat, acabem la partida
@@ -330,7 +358,12 @@ ws.onClose = (socket, id) => {
     } else {
 
       // Reiniciem el taulell
-      matches[idMatch].board = shuffleArray(["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"]);
+      matches[idMatch].board = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+      matches[idMatch].cellsFlipped = 0
+      matches[idMatch].nextTurn = "X"
+      matches[idMatch].playerXScore = 0
+      matches[idMatch].playerOScore = 0
+      matches[idMatch].isProcessing = false
 
       // Esborrar el jugador de la partida
       let rival = ""
@@ -376,4 +409,10 @@ function shuffleArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+async function sleep() {
+  // Código que se ejecutará antes de la pausa
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Código que se ejecutará después de la pausa
 }
