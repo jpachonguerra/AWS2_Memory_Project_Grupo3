@@ -263,7 +263,7 @@ class GameViewPlaying extends HTMLElement {
         this.opponentId = ""
         this.cellOpponentOver = -1
         this.winner = ""
-        
+
         switch (obj.type) {
             case "socketId":
                 this.socketId = obj.value
@@ -588,11 +588,12 @@ class GameViewPlaying extends HTMLElement {
                 if (this.imgHloaded) this.drawImage(ctx, this.imgH, cellCoords, cellSize)
                 else this.drawH(ctx, colorX, cellCoords, cellSize)
             }
-            if (cell == "") {
-                //vaciar la celda
-                this.ctx.fillStyle = 'white'
-                this.ctx.fillRect(0, 0, this.coords.width, this.coords.height)
-            }
+            // if (cell == "") {
+            //     //vaciar la celda
+            //     //esto no es necesario Y rompe el código pero sólo si abres la pestaña de cero
+            //     this.ctx.fillStyle = 'white'
+            //     this.ctx.fillRect(0, 0, this.coords.width, this.coords.height)
+            // }
             if (cell == "X") {
                 if (this.imgXloaded) this.drawImage(ctx, this.imgX, cellCoords, cellSize)
                 else this.drawX(ctx, colorX, cellCoords, cellSize)

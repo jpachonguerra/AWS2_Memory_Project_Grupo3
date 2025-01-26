@@ -215,6 +215,7 @@ ws.onMessage = (socket, id, msg) => {
         // For example, if the player clicked on the first cell, we would do board[0] = playerTurn
         playerTurn = matches[idMatch].nextTurn
         // matches[idMatch].board[obj.value] = playerTurn
+        let board = matches[idMatch].board
 
         // Descubrimos la casilla que clica el jugador
         matches[idMatch].board[obj.value] = matches[idMatch].randomBoard[obj.value];
