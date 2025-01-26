@@ -16,10 +16,14 @@ class GameViewPlaying extends HTMLElement {
             playerO: "",
             playerOName: "",
             board: [],
-            nextTurn: "X"
+            nextTurn: "X",
+            playerXScore: 0,
+            playerOScore: 0
         }
         this.opponentName = ""  // Conté el nom de l'oponent
         this.name = ""  // Conté el nom del jugador
+        this.myScore = 0
+        this.opponentScore = 0
         this.gameStatus = "waitingOpponent"
         this.player = "X"
         this.isMyTurn = false
@@ -129,10 +133,10 @@ class GameViewPlaying extends HTMLElement {
     }
 
     showInfo() {
-        let txt = `Mi nombre: <b>${this.name}</b>`
+        let txt = `Mi nombre: <b>${this.name}</b> Puntuación: <b>${this.myScore}</b>`
         this.shadow.querySelector('#playerInfo').innerHTML = txt
         if (this.opponentName != "") {
-            let opponentTxt = ` Mi contrincante: <b>${this.opponentName}</b>`
+            let opponentTxt = ` Mi contrincante: <b>${this.opponentName}</b> Puntuación: <b>${this.opponentScore}</b>`
             this.shadow.querySelector('#opponentInfo').innerHTML = opponentTxt
         }
     }
@@ -299,6 +303,26 @@ class GameViewPlaying extends HTMLElement {
 
                 if (this.match.playerX == this.socketId) {
                     this.player = "X"
+                    console.log("My name is: " + this.match.playerXName);
+                    this.myScore = this.match.playerXScore
+                } else {
+                    this.player = "O"
+                    console.log("My name is: " + this.match.playerOName);
+                    this.myScore = this.match.playerOScore
+                }
+
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
+                    console.log("Opponent: " + this.match.playerOName);
+                    this.opponentScore = this.match.playerOScore
+                } else {
+                    this.player = "O"
+                    console.log("Opponent: " + this.match.playerXName);
+                    this.opponentScore = this.match.playerXScore
+                }
+
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
                     this.opponentName = this.match.playerOName
                     if (this.match.nextTurn == "X") {
                         this.isMyTurn = true
@@ -310,6 +334,7 @@ class GameViewPlaying extends HTMLElement {
                         this.isMyTurn = true
                     }
                 }
+                this.showInfo()
                 break
             case "nameChanges":
                 this.gameStatus == "gameRound"
@@ -531,7 +556,11 @@ class GameViewPlaying extends HTMLElement {
     drawGameOver(ctx) {
         var text = 'Game Over'
         if (this.winner != "") {
-            text = text + `, guanyador: ${this.winner}`
+            if (this.winner == "X") {
+                text = text + `,  guanyador: ${this.match.playerXName}`
+            }else if (this.winner == "O") {
+                text = text + `,  guanyador: ${this.match.playerOName}`
+            }
         } else {
             text = text + ', empat'
         }
