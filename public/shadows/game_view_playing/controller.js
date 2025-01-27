@@ -292,6 +292,11 @@ class GameViewPlaying extends HTMLElement {
                 this.gameStatus = "gameOver"
                 this.match = obj.value
                 this.winner = obj.winner
+
+                this.showInfo()
+                sendServer({
+                    type: "restartMatch"
+                })
                 break
             case "gamePause":
                 this.gameStatus = "gamePause"

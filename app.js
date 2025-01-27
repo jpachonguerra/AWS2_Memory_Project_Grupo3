@@ -184,6 +184,52 @@ ws.onMessage = (socket, id, msg) => {
   // Processar el missatge rebut
   if (idMatch != -1) {
     switch (obj.type) {
+      case "restartMatch":
+        matches[idMatch].board = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+        matches[idMatch].randomBoard = shuffleArray(["A", "A", "B", "B", "C", "C", "D", "D", "E", "E", "F", "F", "G", "G", "H", "H"])
+        matches[idMatch].cellsFlipped = 0
+        matches[idMatch].nextTurn = "X"
+        matches[idMatch].playerXScore = 0
+        matches[idMatch].playerOScore = 0
+        matches[idMatch].isProcessing = false
+
+        socket.send(JSON.stringify({
+          type: "initMatch",
+          value: matches[idMatch]
+        }))
+      
+        // Si ja hi ha dos jugadors
+        if (playersReady) {
+          let idOpponent = ""
+          if (matches[idMatch].playerX == id) {
+            idOpponent = matches[idMatch].playerO
+          } else {
+            idOpponent = matches[idMatch].playerX
+          }
+      
+          let wsOpponent = ws.getClientById(idOpponent)
+          if (wsOpponent != null) {
+            // Informem al oponent que ja té rival
+            wsOpponent.send(JSON.stringify({
+              type: "initMatch",
+              value: matches[idMatch]
+            }))
+      
+            // Informem al oponent que toca jugar
+            wsOpponent.send(JSON.stringify({
+              type: "gameRound",
+              value: matches[idMatch]
+            }))
+      
+            // Informem al player que toca jugar
+            socket.send(JSON.stringify({
+              type: "gameRound",
+              value: matches[idMatch]
+            }))
+          }
+        }
+
+        break
       case "setPlayerName":
         if (matches[idMatch].playerX == id) {
           matches[idMatch].playerXName = obj.value
