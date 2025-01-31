@@ -412,15 +412,15 @@ class GameViewPlaying extends HTMLElement {
         let restartBtn = this.shadow.querySelector('#restartBtn')
 
         this.shadow.querySelector('#disconnectBtn').addEventListener('click', this.actionDisconnect.bind(this))
+        this.shadow.querySelector('#rematch').addEventListener('click', this.restartMatch.bind(this))
 
-        setTimeout(() => {
-            this.hidePopup()
-            sendServer({
-                type: "restartMatch"
-            })
-        }, 5000)
     }
-
+async restartMatch(){
+    this.hidePopup()
+    sendServer({
+        type: "restartMatch"
+    })
+}
     hidePopup() {
         this.shadow.querySelector("#popup").style.display = "none";
         this.shadow.querySelector("#overlay").style.display = "none";
