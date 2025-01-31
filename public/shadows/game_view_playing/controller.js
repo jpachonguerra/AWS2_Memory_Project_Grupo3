@@ -293,8 +293,6 @@ class GameViewPlaying extends HTMLElement {
                 this.match = obj.value
                 this.winner = obj.winner
 
-                this.showInfo()
-
                 // Select elements inside the Shadow DOM
                 if (this.match.playerX == this.socketId) {
                     this.player = "X"
@@ -305,6 +303,28 @@ class GameViewPlaying extends HTMLElement {
                     console.log("Opponent: " + this.match.playerXName);
                     this.opponentName = this.match.playerXName
                 }
+
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
+                    console.log("My name is: " + this.match.playerXName);
+                    this.myScore = this.match.playerXScore
+                } else {
+                    this.player = "O"
+                    console.log("My name is: " + this.match.playerOName);
+                    this.myScore = this.match.playerOScore
+                }
+
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
+                    console.log("Opponent: " + this.match.playerOName);
+                    this.opponentScore = this.match.playerOScore
+                } else {
+                    this.player = "O"
+                    console.log("Opponent: " + this.match.playerXName);
+                    this.opponentScore = this.match.playerXScore
+                }
+
+                this.showInfo()
 
                 this.showPopup()
                 /* sendServer({
@@ -415,12 +435,14 @@ class GameViewPlaying extends HTMLElement {
         this.shadow.querySelector('#rematch').addEventListener('click', this.restartMatch.bind(this))
 
     }
-async restartMatch(){
-    this.hidePopup()
-    sendServer({
-        type: "restartMatch"
-    })
-}
+
+    async restartMatch() {
+        this.hidePopup()
+        sendServer({
+            type: "restartMatch"
+        })
+    }
+    
     hidePopup() {
         this.shadow.querySelector("#popup").style.display = "none";
         this.shadow.querySelector("#overlay").style.display = "none";
