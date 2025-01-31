@@ -294,9 +294,22 @@ class GameViewPlaying extends HTMLElement {
                 this.winner = obj.winner
 
                 this.showInfo()
-                sendServer({
+
+                // Select elements inside the Shadow DOM
+                if (this.match.playerX == this.socketId) {
+                    this.player = "X"
+                    console.log("Opponent: " + this.match.playerOName);
+                    this.opponentName = this.match.playerOName
+                } else {
+                    this.player = "O"
+                    console.log("Opponent: " + this.match.playerXName);
+                    this.opponentName = this.match.playerXName
+                }
+
+                this.showPopup()
+                /* sendServer({
                     type: "restartMatch"
-                })
+                }) */
                 break
             case "gamePause":
                 this.gameStatus = "gamePause"
@@ -369,6 +382,48 @@ class GameViewPlaying extends HTMLElement {
         }
 
         this.restartRun()
+    }
+
+    showPopup() {
+        this.shadow.querySelector("#popup").style.display = "block"
+        this.shadow.querySelector("#overlay").style.display = "block"
+
+        let text = "Game Over"
+        if (this.winner) {
+            text += this.winner === "X"
+                ? `, ganador: ${this.match.playerXName}`
+                : `, ganador: ${this.match.playerOName}`
+        } else {
+            text += ", empate."
+        }
+        this.shadow.querySelector('#popup-title').innerHTML = text
+        let restartTxt = "Se reiniciara la partida en 5 segundos."
+        this.shadow.querySelector('#popup-message').innerHTML = restartTxt
+
+        let playerTxt = `Mi nombre: <b>${this.name}</b> Puntuación: <b>${this.myScore}</b>`
+        this.shadow.querySelector('#popup-player').innerHTML = playerTxt
+
+        if (this.opponentName) {
+            let opponentTxt = ` Mi contrincante: <b>${this.opponentName}</b> Puntuación: <b>${this.opponentScore}</b>`
+            this.shadow.querySelector('#popup-opponent').innerHTML = opponentTxt
+        }
+
+        // Remove existing event listeners before adding new ones
+        let restartBtn = this.shadow.querySelector('#restartBtn')
+
+        this.shadow.querySelector('#disconnectBtn').addEventListener('click', this.actionDisconnect.bind(this))
+
+        setTimeout(() => {
+            this.hidePopup()
+            sendServer({
+                type: "restartMatch"
+            })
+        }, 5000)
+    }
+
+    hidePopup() {
+        this.shadow.querySelector("#popup").style.display = "none";
+        this.shadow.querySelector("#overlay").style.display = "none";
     }
 
     getCell(x, y) {
@@ -448,7 +503,7 @@ class GameViewPlaying extends HTMLElement {
                 break
             case "gameOver":
                 this.drawBoard(this.ctx)
-                this.drawGameOver(this.ctx)
+                //this.drawGameOver(this.ctx)
                 break
         }
     }
@@ -562,12 +617,12 @@ class GameViewPlaying extends HTMLElement {
         var text = 'Game Over'
         if (this.winner != "") {
             if (this.winner == "X") {
-                text = text + `,  guanyador: ${this.match.playerXName}`
-            }else if (this.winner == "O") {
-                text = text + `,  guanyador: ${this.match.playerOName}`
+                text = text + `, ganador: ${this.match.playerXName}`
+            } else if (this.winner == "O") {
+                text = text + `, ganador: ${this.match.playerOName}`
             }
         } else {
-            text = text + ', empat'
+            text = text + ', empate'
         }
         var x = this.coords.centerX
         var y = this.coords.centerY
